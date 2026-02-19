@@ -1,7 +1,7 @@
 # Arivozhi (அறிவொளி)
 /ah-ri-vo-zhi/ • *noun* • Tamil for "light of knowledge" or "enlightenment."
 
-**IDE-level autocomplete and memory for Moodle CodeRunner.**
+**IDE-level autocomplete and memory for Moodle CodeRunner.**<br>
 Seamlessly carry your variables across exam questions with cross-session IntelliSense.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
