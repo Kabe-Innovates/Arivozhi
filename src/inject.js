@@ -16,6 +16,14 @@
 (() => {
   "use strict";
 
+  // Guard against duplicate injection after extension reload.
+  // MAIN-world scripts persist across reloads — running the IIFE
+  // again would create duplicate MutationObservers, event listeners,
+  // and state.  The existing orchestrator instance is resurrected
+  // via the "arivozhi-bridge-ready" event handled by memory.js.
+  if (window.__arivozhiInjected) return;
+  window.__arivozhiInjected = true;
+
   const { memory, extractor, completer } = window.Arivozhi;
 
   /* ─── Configuration ─── */
@@ -29,14 +37,37 @@
   /** Editors we've already hooked — prevents double-attach. */
   const hookedEditors = new WeakSet();
 
-  /** Map of editor element → { questionId, debounceTimer } */
-  const editorState = new Map();
+  /** WeakMap of editor element → { questionId, debounceTimer, editor, crossMemory } */
+  const editorState = new WeakMap();
+
+  /** Track all editor elements for iteration (WeakMap isn't iterable). */
+  const allEditorEls = new Set();
 
   /** The quiz attempt key — derived from the URL. */
   const attemptKey = deriveAttemptKey();
 
   /** Count of hooked editors — for badge updates. */
   let hookedCount = 0;
+
+  /* ─── Helpers ─── */
+
+  /**
+   * Extract symbols from an editor and save them via the bridge.
+   * Centralises the extract→save pattern used in multiple places.
+   * @param {Element} editorEl — the .ace_editor DOM element
+   * @returns {Promise<void>|undefined}
+   */
+  function extractAndSave(editorEl) {
+    if (!editorEl.env?.editor) return;
+    const state = editorState.get(editorEl);
+    if (!state) return;
+    try {
+      const symbols = extractor.extract(state.editor);
+      if (symbols.length) {
+        return memory.save(attemptKey, state.questionId, symbols).catch(() => {});
+      }
+    } catch { /* best effort */ }
+  }
 
   /* ─── Attempt key derivation ─── */
 
@@ -106,7 +137,6 @@
     }
 
     const liveAutocomplete = settings.liveAutocomplete !== false;
-    const minPrefixLength = settings.minPrefixLength ?? 2;
     const crossMemory = settings.crossQuestionMemory !== false;
 
     // 1. Enable Ace's language_tools if not already active
@@ -118,15 +148,15 @@
 
     editor.setOptions({
       enableBasicAutocompletion: true,
+      // Pass the prefix length as a number — Ace uses it as the
+      // minimum character threshold before auto-opening the dropdown.
       enableLiveAutocompletion: liveAutocomplete,
-      enableSnippets: false,
+      enableSnippets: true,
     });
 
     // 2. Register cross-question completer
     if (crossMemory) {
-      const arivozhiCompleter = completer.create(attemptKey, questionId, {
-        minPrefixLength,
-      });
+      const arivozhiCompleter = completer.create(attemptKey, questionId);
 
       // Avoid duplicate registration
       editor.completers = editor.completers || [];
@@ -137,24 +167,21 @@
 
     // 3. Attach debounced extraction on code changes
     let debounceTimer = null;
-    editorState.set(editorEl, { questionId, debounceTimer });
+    editorState.set(editorEl, { questionId, debounceTimer, editor, crossMemory });
+    allEditorEls.add(editorEl);
 
     editor.session.on("change", () => {
-      if (!crossMemory) return;
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        const symbols = extractor.extract(editor);
-        memory.save(attemptKey, questionId, symbols).catch(() => {});
+      const st = editorState.get(editorEl);
+      if (!st?.crossMemory) return;
+      clearTimeout(st.debounceTimer);
+      st.debounceTimer = setTimeout(() => {
+        extractAndSave(editorEl);
       }, EXTRACT_DEBOUNCE_MS);
-      editorState.get(editorEl).debounceTimer = debounceTimer;
     });
 
     // 4. Do an initial extraction (editor may already have code)
     if (crossMemory) {
-      const symbols = extractor.extract(editor);
-      if (symbols.length) {
-        memory.save(attemptKey, questionId, symbols).catch(() => {});
-      }
+      extractAndSave(editorEl);
     }
 
     hookedCount++;
@@ -170,7 +197,7 @@
 
   /**
    * Try to hook an editor element. If the Ace instance isn't ready yet
-   * (el.env.editor is undefined), retry with exponential backoff.
+   * (el.env.editor is undefined), retry with a fixed-interval poll.
    */
   function tryHookEditor(editorEl, retries = EDITOR_READY_MAX_RETRIES) {
     if (editorEl.env?.editor) {
@@ -216,20 +243,106 @@
 
   /* ─── Final extraction on page unload ─── */
 
-  window.addEventListener("beforeunload", () => {
-    document.querySelectorAll(".ace_editor").forEach((el) => {
-      if (!el.env?.editor) return;
-      const state = editorState.get(el);
-      if (!state) return;
+  // Use both pagehide (more reliable) and beforeunload (wider compat)
+  // to do a last-chance symbol save before navigation.
+  function finalSave() {
+    for (const el of allEditorEls) {
+      // extractAndSave is synchronous at the CustomEvent dispatch level —
+      // the bridge's chrome.storage.session.set() call will be queued
+      // before teardown.
+      extractAndSave(el);
+    }
+  }
 
-      const symbols = extractor.extract(el.env.editor);
-      // navigator.sendBeacon isn't useful here (we write to extension storage).
-      // The bridge CustomEvent is synchronous dispatch, so storage.session.set
-      // will be called before the page tears down in most cases.
-      try {
-        memory.save(attemptKey, state.questionId, symbols);
-      } catch { /* best effort */ }
-    });
+  window.addEventListener("pagehide", finalSave);
+  window.addEventListener("beforeunload", finalSave);
+
+  /* ─── Settings live-reload ─── */
+
+  /**
+   * Listen for settings changes broadcast from the content bridge.
+   * Re-applies editor options without requiring a page reload.
+   */
+  window.addEventListener("arivozhi-settings-changed", (e) => {
+    const changes = e.detail || {};
+    for (const el of allEditorEls) {
+      const state = editorState.get(el);
+      if (!state?.editor) continue;
+      const editor = state.editor;
+
+      if ("liveAutocomplete" in changes) {
+        editor.setOption("enableLiveAutocompletion", changes.liveAutocomplete);
+      }
+
+      if ("crossQuestionMemory" in changes) {
+        const enabled = changes.crossQuestionMemory;
+        state.crossMemory = enabled;
+
+        if (enabled) {
+          // Re-attach cross-question completer
+          const arivozhiCompleter = completer.create(attemptKey, state.questionId);
+          editor.completers = editor.completers || [];
+          if (!editor.completers.some((c) => c.id === arivozhiCompleter.id)) {
+            editor.completers.push(arivozhiCompleter);
+          }
+          // Run immediate extraction for this editor
+          extractAndSave(el);
+        } else {
+          // Remove cross-question completer
+          if (editor.completers) {
+            editor.completers = editor.completers.filter(
+              (c) => c.id !== "arivozhi-cross-question"
+            );
+          }
+          // Cancel any pending extraction
+          if (state.debounceTimer) {
+            clearTimeout(state.debounceTimer);
+            state.debounceTimer = null;
+          }
+        }
+      }
+    }
+    console.log("[Arivozhi] Settings reloaded live.", changes);
+  });
+
+  /* ─── Bridge-dead cleanup ─── */
+
+  /**
+   * Only react to bridge-dead events from the bridge we trust.
+   * memory.js tracks the nonce from "arivozhi-bridge-ready";
+   * we read it via the same event so we can filter stale deaths.
+   */
+  let _trustedNonce = null;
+
+  window.addEventListener("arivozhi-bridge-ready", (e) => {
+    _trustedNonce = e.detail?.nonce ?? null;
+
+    // After an extension reload, chrome.storage.session is wiped.
+    // Re-extract symbols from every hooked editor so the bridge's
+    // fresh storage is repopulated without requiring user interaction.
+    // Small delay ensures memory.js processes its own bridge-ready
+    // handler first (clears _bridgeDead, updates nonce).
+    setTimeout(() => {
+      for (const el of allEditorEls) {
+        const state = editorState.get(el);
+        if (!state?.crossMemory) continue;
+        try {
+          extractAndSave(el);
+        } catch { /* best effort */ }
+      }
+      // Re-send badge count — the new service worker has no state.
+      memory.updateBadge(hookedCount);
+      console.log("[Arivozhi] Bridge resurrected — re-extracted symbols for all editors.");
+    }, 100);
+  });
+
+  window.addEventListener("arivozhi-bridge-dead", (e) => {
+    if (e.detail?.nonce !== _trustedNonce) return; // stale bridge — ignore
+    for (const el of allEditorEls) {
+      const state = editorState.get(el);
+      if (state?.debounceTimer) clearTimeout(state.debounceTimer);
+    }
+    console.warn("[Arivozhi] Bridge dead — extraction paused until page reload.");
   });
 
   /* ─── Bootstrap ─── */

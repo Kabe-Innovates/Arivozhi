@@ -8,7 +8,6 @@
 
 const DEFAULTS = {
   liveAutocomplete: true,
-  minPrefixLength: 2,
   crossQuestionMemory: true,
   showBadge: true,
 };

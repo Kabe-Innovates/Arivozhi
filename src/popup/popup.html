@@ -41,16 +41,6 @@
         <input type="checkbox" id="settingMemory" />
         <span class="toggle"></span>
       </label>
-
-      <label class="setting inline">
-        <span>Min prefix length</span>
-        <select id="settingPrefix">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-        </select>
-      </label>
     </section>
 
     <hr class="divider" />
@@ -60,6 +50,18 @@
       <button id="btnClear" class="btn btn-danger" title="Clear all remembered symbols for this session">
         Clear Memory
       </button>
+    </section>
+
+    <!-- Symbol Viewer -->
+    <hr class="divider" />
+    <section class="symbols-section">
+      <div class="symbols-header">
+        <span class="symbols-title">Remembered Symbols</span>
+        <span class="symbols-count" id="symbolCount">0</span>
+      </div>
+      <div class="symbols-list" id="symbolsList">
+        <p class="symbols-empty" id="symbolsEmpty">No symbols stored yet.</p>
+      </div>
     </section>
 
     <!-- Footer -->

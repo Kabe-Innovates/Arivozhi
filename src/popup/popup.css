@@ -165,22 +165,6 @@ input[type="checkbox"]:checked + .toggle::after {
   background: var(--accent);
 }
 
-/* Select */
-.setting.inline select {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 12px;
-  cursor: pointer;
-  outline: none;
-}
-
-.setting.inline select:focus {
-  border-color: var(--accent);
-}
-
 /* ─── Actions ─── */
 
 .actions-section {
@@ -218,4 +202,103 @@ input[type="checkbox"]:checked + .toggle::after {
   text-align: center;
   font-size: 10px;
   color: var(--text-muted);
+}
+
+/* ─── Symbol Viewer ─── */
+
+.symbols-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.symbols-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.symbols-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.symbols-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 1px 7px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.symbols-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.symbols-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.symbols-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.symbols-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 10px 0;
+}
+
+.symbol-question {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 4px;
+  padding: 2px 0;
+}
+
+.symbol-question:first-child {
+  margin-top: 0;
+}
+
+.symbol-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 11px;
+}
+
+.symbol-icon {
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.symbol-icon.fn { color: #f0ad4e; }
+.symbol-icon.cls { color: #5bc0de; }
+.symbol-icon.var { color: #d9534f; }
+
+.symbol-name {
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
 }

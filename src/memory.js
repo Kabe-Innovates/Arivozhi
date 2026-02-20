@@ -23,11 +23,44 @@ window.Arivozhi.memory = (() => {
 
   let _msgId = 0;
 
+  /** Set when the bridge fires "arivozhi-bridge-dead" (extension reloaded). */
+  let _bridgeDead = false;
+
+  /** Nonce of the current trusted bridge (set by "arivozhi-bridge-ready"). */
+  let _bridgeNonce = null;
+
+  /**
+   * A new ISOLATED-world bridge has loaded (or re-loaded after an
+   * extension update).  Accept its nonce and resurrect if we were
+   * previously marked dead.
+   */
+  window.addEventListener("arivozhi-bridge-ready", (e) => {
+    _bridgeNonce = e.detail?.nonce ?? null;
+    if (_bridgeDead) {
+      _bridgeDead = false;
+      console.log("[Arivozhi memory] Bridge resurrected with new nonce.");
+    }
+  });
+
+  /**
+   * Only honour bridge-dead notices from the bridge we currently trust.
+   * Stale ISOLATED-world contexts (from a previous extension load) may
+   * fire this event with an old nonce — we must ignore those.
+   */
+  window.addEventListener("arivozhi-bridge-dead", (e) => {
+    if (e.detail?.nonce !== _bridgeNonce) return; // stale bridge — ignore
+    _bridgeDead = true;
+    console.warn("[Arivozhi memory] Bridge is dead — suppressing future requests.");
+  });
+
   /**
    * Send a request to the ISOLATED-world bridge and wait for a response.
    * Returns a Promise that resolves with the bridge's reply payload.
    */
   function request(action, payload = {}, timeoutMs = 3000) {
+    if (_bridgeDead) {
+      return Promise.reject(new Error("Bridge context invalidated"));
+    }
     return new Promise((resolve, reject) => {
       const id = `msg-${++_msgId}`;
       const timer = setTimeout(() => {
@@ -37,6 +70,8 @@ window.Arivozhi.memory = (() => {
 
       function onReply(e) {
         if (e.detail?.id !== id) return;
+        // Ignore replies from a stale bridge (mismatched nonce)
+        if (_bridgeNonce && e.detail.nonce !== _bridgeNonce) return;
         clearTimeout(timer);
         window.removeEventListener(EVENTS.FROM_BRIDGE, onReply);
         if (e.detail.ok) {
@@ -98,6 +133,7 @@ window.Arivozhi.memory = (() => {
    * @param {number} count  Number of hooked editors.
    */
   function updateBadge(count) {
+    if (_bridgeDead) return;
     window.dispatchEvent(
       new CustomEvent(EVENTS.TO_BRIDGE, {
         detail: { action: "updateBadge", count },
