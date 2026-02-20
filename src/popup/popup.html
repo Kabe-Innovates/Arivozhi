@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arivozhi</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup">
+    <!-- Header -->
+    <header class="header">
+      <img src="../../icons/icon-48.png" alt="Arivozhi" class="logo" />
+      <div class="header-text">
+        <h1>Arivozhi</h1>
+        <p class="tagline">அறிவொளி — light of knowledge</p>
+      </div>
+    </header>
+
+    <!-- Status -->
+    <section class="status-section">
+      <div class="status-row">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-label" id="statusLabel">Checking…</span>
+      </div>
+      <p class="status-detail" id="statusDetail"></p>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- Settings -->
+    <section class="settings-section">
+      <label class="setting">
+        <span>Live autocomplete</span>
+        <input type="checkbox" id="settingLive" />
+        <span class="toggle"></span>
+      </label>
+
+      <label class="setting">
+        <span>Cross-question memory</span>
+        <input type="checkbox" id="settingMemory" />
+        <span class="toggle"></span>
+      </label>
+
+      <label class="setting inline">
+        <span>Min prefix length</span>
+        <select id="settingPrefix">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </label>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- Actions -->
+    <section class="actions-section">
+      <button id="btnClear" class="btn btn-danger" title="Clear all remembered symbols for this session">
+        Clear Memory
+      </button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

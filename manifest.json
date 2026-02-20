@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Arivozhi — Moodle CodeRunner IntelliSense",
+  "version": "1.0.0",
+  "description": "IDE-level autocomplete and cross-question memory for Moodle CodeRunner exams.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/mod/quiz/*",
+        "*://*/question/*"
+      ],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://*/mod/quiz/*",
+        "*://*/question/*"
+      ],
+      "js": [
+        "src/memory.js",
+        "src/extractor.js",
+        "src/completer.js",
+        "src/inject.js"
+      ],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "arivozhi@arivozhi.dev",
+      "strict_min_version": "128.0"
+    }
+  }
+}
