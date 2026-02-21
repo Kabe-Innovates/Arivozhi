@@ -1,9 +1,35 @@
-# Arivozhi (அறிவொளி)
-/ah-ri-vo-zhi/ • *noun* • Tamil for "light of knowledge" or "enlightenment."
+# Arivozhi (அறிவொழி)
 
-**IDE-level autocomplete and memory for Moodle CodeRunner.**<br>
-Seamlessly carry your variables across exam questions with cross-session IntelliSense.
+IDE-level autocomplete and cross-question memory for Moodle CodeRunner exams.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Browser](https://img.shields.io/badge/Browser-Chrome%20%7C%20Firefox%20%7C%20Edge-orange.svg)](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions)
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+## Features
+
+- **Live autocomplete** — Activates Ace Editor's `language_tools` on every CodeRunner question.
+- **Cross-question memory** — Symbols defined in one question appear in the autocomplete of subsequent questions, tagged with their origin (e.g. `↩ Q1`).
+- **Multi-language** — Python, C/C++, Java.
+- **No build step** — Vanilla ES6+ JS, load unpacked and go.
+
+## Install
+
+### Chrome / Edge
+
+1. Clone the repo.
+2. Go to `chrome://extensions` → enable **Developer mode**.
+3. **Load unpacked** → select the repo folder.
+
+### Firefox
+
+1. Go to `about:debugging#/runtime/this-firefox`.
+2. **Load Temporary Add-on…** → select `manifest.json`.
+
+## Browser Support
+
+| Browser | Min Version |
+|---------|-------------|
+| Chrome  | 111+        |
+| Edge    | 111+        |
+| Firefox | 128+        |
+
+## License
+
+[MIT](LICENSE) © 2026 Kabe-Innovates
