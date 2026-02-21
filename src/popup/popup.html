@@ -4,70 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arivozhi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Tamil:wght@100..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <div class="popup">
-    <!-- Header -->
-    <header class="header">
-      <img src="../../icons/icon-48.png" alt="Arivozhi" class="logo" />
-      <div class="header-text">
-        <h1>Arivozhi</h1>
-        <p class="tagline">அறிவொளி — light of knowledge</p>
-      </div>
-    </header>
+    <div class="title-row">
+      <h1 class="title">அறிவொழி</h1>
+      <span class="status-dot" id="statusDot"></span>
+    </div>
 
-    <!-- Status -->
-    <section class="status-section">
-      <div class="status-row">
-        <span class="status-dot" id="statusDot"></span>
-        <span class="status-label" id="statusLabel">Checking…</span>
-      </div>
-      <p class="status-detail" id="statusDetail"></p>
-    </section>
+    <label class="setting">
+      <span>Autocomplete</span>
+      <input type="checkbox" id="settingLive" />
+      <span class="toggle"></span>
+    </label>
 
-    <hr class="divider" />
+    <label class="setting">
+      <span>Memory</span>
+      <input type="checkbox" id="settingMemory" />
+      <span class="toggle"></span>
+    </label>
 
-    <!-- Settings -->
-    <section class="settings-section">
-      <label class="setting">
-        <span>Live autocomplete</span>
-        <input type="checkbox" id="settingLive" />
-        <span class="toggle"></span>
-      </label>
-
-      <label class="setting">
-        <span>Cross-question memory</span>
-        <input type="checkbox" id="settingMemory" />
-        <span class="toggle"></span>
-      </label>
-    </section>
-
-    <hr class="divider" />
-
-    <!-- Actions -->
-    <section class="actions-section">
-      <button id="btnClear" class="btn btn-danger" title="Clear all remembered symbols for this session">
-        Clear Memory
-      </button>
-    </section>
-
-    <!-- Symbol Viewer -->
-    <hr class="divider" />
-    <section class="symbols-section">
-      <div class="symbols-header">
-        <span class="symbols-title">Remembered Symbols</span>
-        <span class="symbols-count" id="symbolCount">0</span>
-      </div>
-      <div class="symbols-list" id="symbolsList">
-        <p class="symbols-empty" id="symbolsEmpty">No symbols stored yet.</p>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <span>v1.0.0</span>
-    </footer>
+    <button id="btnClear" class="btn btn-danger">Reset</button>
   </div>
 
   <script src="popup.js"></script>

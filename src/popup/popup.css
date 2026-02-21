@@ -1,16 +1,16 @@
-/* ─── Arivozhi Popup — Styles ─── */
+/* ─── Arivozhi Popup — Minimal OLED ─── */
 
 :root {
-  --bg: #1e1e2e;
-  --surface: #28283c;
-  --text: #e0e0ec;
-  --text-muted: #8888a0;
-  --accent: #4CAF50;
-  --accent-dim: #2e7d32;
-  --danger: #ef5350;
-  --danger-dim: #c62828;
-  --border: #3a3a50;
-  --radius: 8px;
+  --bg: #222222;
+  --surface: #222222;
+  --text: #ffffff;
+  --text-muted: #666666;
+  --accent: #64cc4f;
+  --accent-dim: #64cc4f;
+  --danger: #a3042a;
+  --danger-dim: #a3042a;
+  --border: #222222;
+  --radius: 6px;
 }
 
 * {
@@ -20,60 +20,36 @@
 }
 
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Anek Tamil", system-ui, -apple-system, sans-serif;
+  font-weight: 400;
   font-size: 13px;
   background: var(--bg);
   color: var(--text);
-  min-width: 280px;
-  max-width: 280px;
+  min-width: 220px;
+  max-width: 220px;
 }
 
 .popup {
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* ─── Header ─── */
-
-.header {
+.title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 8px;
 }
 
-.logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-}
-
-.header-text h1 {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-
-.tagline {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 1px;
+.title {
+  font-size: 18px;
+  line-height: 1;
+  text-align: center;
 }
 
 /* ─── Status ─── */
-
-.status-section {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
 .status-dot {
   width: 8px;
@@ -93,38 +69,14 @@ body {
   background: var(--text-muted);
 }
 
-.status-label {
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.status-detail {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 4px;
-  padding-left: 16px;
-}
-
-/* ─── Divider ─── */
-
-.divider {
-  border: none;
-  border-top: 1px solid var(--border);
-}
-
 /* ─── Settings ─── */
-
-.settings-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
 .setting {
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   font-size: 13px;
 }
@@ -133,13 +85,12 @@ body {
   display: none;
 }
 
-/* Toggle switch */
 .toggle {
   position: relative;
-  width: 36px;
-  height: 20px;
+  width: 34px;
+  height: 18px;
   background: var(--border);
-  border-radius: 10px;
+  border-radius: 9px;
   transition: background 0.2s;
   flex-shrink: 0;
 }
@@ -149,8 +100,8 @@ body {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: var(--text-muted);
   border-radius: 50%;
   transition: transform 0.2s, background 0.2s;
@@ -162,23 +113,19 @@ input[type="checkbox"]:checked + .toggle {
 
 input[type="checkbox"]:checked + .toggle::after {
   transform: translateX(16px);
-  background: var(--accent);
+  background: #328336;
 }
 
-/* ─── Actions ─── */
-
-.actions-section {
-  display: flex;
-  gap: 8px;
-}
+/* ─── Button ─── */
 
 .btn {
-  flex: 1;
-  padding: 7px 12px;
+  width: 100%;
+  padding: 7px 0;
   border: none;
   border-radius: var(--radius);
+  font-family: inherit;
+  font-weight: 700;
   font-size: 12px;
-  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
 }
@@ -194,111 +141,4 @@ input[type="checkbox"]:checked + .toggle::after {
 
 .btn-danger:hover {
   background: var(--danger);
-}
-
-/* ─── Footer ─── */
-
-.footer {
-  text-align: center;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-/* ─── Symbol Viewer ─── */
-
-.symbols-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.symbols-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.symbols-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.symbols-count {
-  font-size: 11px;
-  font-weight: 600;
-  background: var(--accent-dim);
-  color: var(--accent);
-  padding: 1px 7px;
-  border-radius: 10px;
-  min-width: 20px;
-  text-align: center;
-}
-
-.symbols-list {
-  max-height: 180px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.symbols-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.symbols-list::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
-}
-
-.symbols-empty {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 10px 0;
-}
-
-.symbol-question {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-top: 4px;
-  padding: 2px 0;
-}
-
-.symbol-question:first-child {
-  margin-top: 0;
-}
-
-.symbol-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 6px;
-  border-radius: 4px;
-  background: var(--surface);
-  font-size: 11px;
-}
-
-.symbol-icon {
-  font-size: 12px;
-  width: 14px;
-  text-align: center;
-  flex-shrink: 0;
-  color: var(--text-muted);
-}
-
-.symbol-icon.fn { color: #f0ad4e; }
-.symbol-icon.cls { color: #5bc0de; }
-.symbol-icon.var { color: #d9534f; }
-
-.symbol-name {
-  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
 }
