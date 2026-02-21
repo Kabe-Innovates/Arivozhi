@@ -2,6 +2,7 @@
 
 IDE-level autocomplete and cross-question memory for Moodle CodeRunner exams.
 
+![Arivozhi Banner](ArivozhiBanner.png)
 ## Features
 
 - **Live autocomplete** — Activates Ace Editor's `language_tools` on every CodeRunner question.
