@@ -1,6 +1,6 @@
 # Arivozhi (அறிவொழி)
 
-IDE-level autocomplete and cross-question memory for Moodle CodeRunner exams.
+IDE-level autocomplete and cross-question memory for Moodle CodeRunner quizes.
 
 ![Arivozhi Banner](ArivozhiBanner.png)
 
