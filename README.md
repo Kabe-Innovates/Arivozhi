@@ -6,7 +6,6 @@ IDE-level autocomplete and cross-question memory for Moodle CodeRunner exams.
 
 - **Live autocomplete** — Activates Ace Editor's `language_tools` on every CodeRunner question.
 - **Cross-question memory** — Symbols defined in one question appear in the autocomplete of subsequent questions, tagged with their origin (e.g. `↩ Q1`).
-- **Multi-language** — Python, C/C++, Java.
 - **No build step** — Vanilla ES6+ JS, load unpacked and go.
 
 ## Install
