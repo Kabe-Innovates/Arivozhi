@@ -1,5 +1,7 @@
 # Arivozhi (அறிவொழி)
 
+/ah-ri-vo-zhi/ • *noun* • Tamil for "light of knowledge".
+
 IDE-level autocomplete and cross-question memory for Moodle CodeRunner quizes.
 
 ![Arivozhi Banner](ArivozhiBanner.png)
