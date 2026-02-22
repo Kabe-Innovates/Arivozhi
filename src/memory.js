@@ -29,13 +29,32 @@ window.Arivozhi.memory = (() => {
   /** Nonce of the current trusted bridge (set by "arivozhi-bridge-ready"). */
   let _bridgeNonce = null;
 
+  function decodeDetail(raw) {
+    if (!raw) return null;
+    if (typeof raw === "string") {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        console.warn("[Arivozhi memory] Dropping malformed payload.");
+        return null;
+      }
+    }
+    if (typeof raw === "object") return raw;
+    return null;
+  }
+
+  function encodeDetail(payload) {
+    return JSON.stringify(payload);
+  }
+
   /**
    * A new ISOLATED-world bridge has loaded (or re-loaded after an
    * extension update).  Accept its nonce and resurrect if we were
    * previously marked dead.
    */
   window.addEventListener("arivozhi-bridge-ready", (e) => {
-    _bridgeNonce = e.detail?.nonce ?? null;
+    const detail = decodeDetail(e.detail);
+    _bridgeNonce = detail?.nonce ?? null;
     if (_bridgeDead) {
       _bridgeDead = false;
       console.log("[Arivozhi memory] Bridge resurrected with new nonce.");
@@ -48,7 +67,8 @@ window.Arivozhi.memory = (() => {
    * fire this event with an old nonce — we must ignore those.
    */
   window.addEventListener("arivozhi-bridge-dead", (e) => {
-    if (e.detail?.nonce !== _bridgeNonce) return; // stale bridge — ignore
+    const detail = decodeDetail(e.detail);
+    if (detail?.nonce !== _bridgeNonce) return; // stale bridge — ignore
     _bridgeDead = true;
     console.warn("[Arivozhi memory] Bridge is dead — suppressing future requests.");
   });
@@ -69,22 +89,23 @@ window.Arivozhi.memory = (() => {
       }, timeoutMs);
 
       function onReply(e) {
-        if (e.detail?.id !== id) return;
+        const detail = decodeDetail(e.detail);
+        if (detail?.id !== id) return;
         // Ignore replies from a stale bridge (mismatched nonce)
-        if (_bridgeNonce && e.detail.nonce !== _bridgeNonce) return;
+        if (_bridgeNonce && detail.nonce !== _bridgeNonce) return;
         clearTimeout(timer);
         window.removeEventListener(EVENTS.FROM_BRIDGE, onReply);
-        if (e.detail.ok) {
-          resolve(e.detail.data);
+        if (detail.ok) {
+          resolve(detail.data);
         } else {
-          reject(new Error(e.detail.error || "Bridge error"));
+          reject(new Error(detail?.error || "Bridge error"));
         }
       }
 
       window.addEventListener(EVENTS.FROM_BRIDGE, onReply);
       window.dispatchEvent(
         new CustomEvent(EVENTS.TO_BRIDGE, {
-          detail: { id, action, ...payload },
+          detail: encodeDetail({ id, action, ...payload }),
         })
       );
     });
@@ -136,7 +157,7 @@ window.Arivozhi.memory = (() => {
     if (_bridgeDead) return;
     window.dispatchEvent(
       new CustomEvent(EVENTS.TO_BRIDGE, {
-        detail: { action: "updateBadge", count },
+        detail: encodeDetail({ action: "updateBadge", count }),
       })
     );
   }

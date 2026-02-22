@@ -2,8 +2,8 @@
  * Arivozhi — Content Script (ISOLATED world)
  *
  * Bridge between the MAIN-world scripts (inject.js, memory.js, etc.)
- * and the chrome.storage.session / chrome.runtime APIs that are only
- * accessible from the ISOLATED world.
+ * and extension APIs in the ISOLATED world. Session storage operations
+ * are delegated to the background script for cross-browser reliability.
  *
  * Communication protocol:
  *   MAIN  →  ISOLATED : window.dispatchEvent(CustomEvent("arivozhi-to-bridge", { detail }))
@@ -31,13 +31,38 @@
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+  function encodeDetail(payload) {
+    return JSON.stringify(payload);
+  }
+
+  function decodeDetail(raw) {
+    if (!raw) return null;
+    if (typeof raw === "string") {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        console.warn("[Arivozhi bridge] Dropping malformed string payload.");
+        return null;
+      }
+    }
+    if (typeof raw === "object") return raw;
+    return null;
+  }
+
   /** Send a message back to the MAIN world. */
   function reply(id, payload) {
     window.dispatchEvent(
       new CustomEvent(EVENTS.FROM_BRIDGE, {
-        detail: { id, nonce: BRIDGE_NONCE, ...payload },
+        detail: encodeDetail({ id, nonce: BRIDGE_NONCE, ...payload }),
       })
     );
+  }
+
+  function sendToBackground(message) {
+    if (!chrome.runtime?.id) {
+      throw new Error("Extension context invalidated");
+    }
+    return chrome.runtime.sendMessage(message);
   }
 
   /* ───────── message handlers ───────── */
@@ -49,9 +74,16 @@
      */
     async saveSymbols({ id, attemptKey, questionId, symbols }) {
       const storageKey = `symbols:${attemptKey}`;
-      const data = (await chrome.storage.session.get(storageKey))[storageKey] || {};
+      const current = await sendToBackground({
+        type: "session-get",
+        keys: [storageKey],
+      });
+      const data = (current && current[storageKey]) || {};
       data[questionId] = symbols;
-      await chrome.storage.session.set({ [storageKey]: data });
+      await sendToBackground({
+        type: "session-set",
+        data: { [storageKey]: data },
+      });
       reply(id, { ok: true });
     },
 
@@ -61,7 +93,11 @@
      */
     async loadSymbols({ id, attemptKey }) {
       const storageKey = `symbols:${attemptKey}`;
-      const data = (await chrome.storage.session.get(storageKey))[storageKey] || {};
+      const response = await sendToBackground({
+        type: "session-get",
+        keys: [storageKey],
+      });
+      const data = (response && response[storageKey]) || {};
       reply(id, { ok: true, data });
     },
 
@@ -71,7 +107,10 @@
      */
     async clearSymbols({ id, attemptKey }) {
       const storageKey = `symbols:${attemptKey}`;
-      await chrome.storage.session.remove(storageKey);
+      await sendToBackground({
+        type: "session-remove",
+        keys: [storageKey],
+      });
       reply(id, { ok: true });
     },
 
@@ -80,7 +119,7 @@
      * detail: { action: "updateBadge", count }
      */
     async updateBadge({ count }) {
-      chrome.runtime.sendMessage({ type: "badge", count });
+      await sendToBackground({ type: "badge", count });
     },
 
     /**
@@ -108,7 +147,7 @@
     window.removeEventListener(EVENTS.TO_BRIDGE, onBridgeMessage);
     window.dispatchEvent(
       new CustomEvent("arivozhi-bridge-dead", {
-        detail: { nonce: BRIDGE_NONCE },
+        detail: encodeDetail({ nonce: BRIDGE_NONCE }),
       })
     );
     console.warn("[Arivozhi] Bridge context invalidated — detached listener.");
@@ -122,7 +161,7 @@
       return;
     }
 
-    const detail = e.detail;
+    const detail = decodeDetail(e.detail);
     if (!detail || !detail.action) return;
 
     const handler = handlers[detail.action];
@@ -158,7 +197,9 @@
     }
 
     window.dispatchEvent(
-      new CustomEvent("arivozhi-settings-changed", { detail: payload })
+      new CustomEvent("arivozhi-settings-changed", {
+        detail: encodeDetail(payload),
+      })
     );
   });
 
@@ -171,7 +212,7 @@
    */
   window.dispatchEvent(
     new CustomEvent("arivozhi-bridge-ready", {
-      detail: { nonce: BRIDGE_NONCE },
+      detail: encodeDetail({ nonce: BRIDGE_NONCE }),
     })
   );
 

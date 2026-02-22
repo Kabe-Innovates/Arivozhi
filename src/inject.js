@@ -49,6 +49,20 @@
   /** Count of hooked editors — for badge updates. */
   let hookedCount = 0;
 
+  function decodeDetail(raw) {
+    if (!raw) return null;
+    if (typeof raw === "string") {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        console.warn("[Arivozhi] Ignoring malformed bridge payload.");
+        return null;
+      }
+    }
+    if (typeof raw === "object") return raw;
+    return null;
+  }
+
   /* ─── Helpers ─── */
 
   /**
@@ -264,7 +278,7 @@
    * Re-applies editor options without requiring a page reload.
    */
   window.addEventListener("arivozhi-settings-changed", (e) => {
-    const changes = e.detail || {};
+    const changes = decodeDetail(e.detail) || {};
     for (const el of allEditorEls) {
       const state = editorState.get(el);
       if (!state?.editor) continue;
@@ -315,7 +329,8 @@
   let _trustedNonce = null;
 
   window.addEventListener("arivozhi-bridge-ready", (e) => {
-    _trustedNonce = e.detail?.nonce ?? null;
+    const detail = decodeDetail(e.detail);
+    _trustedNonce = detail?.nonce ?? null;
 
     // After an extension reload, chrome.storage.session is wiped.
     // Re-extract symbols from every hooked editor so the bridge's
@@ -337,7 +352,8 @@
   });
 
   window.addEventListener("arivozhi-bridge-dead", (e) => {
-    if (e.detail?.nonce !== _trustedNonce) return; // stale bridge — ignore
+    const detail = decodeDetail(e.detail);
+    if (detail?.nonce !== _trustedNonce) return; // stale bridge — ignore
     for (const el of allEditorEls) {
       const state = editorState.get(el);
       if (state?.debounceTimer) clearTimeout(state.debounceTimer);
