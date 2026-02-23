@@ -12,6 +12,8 @@ IDE-level autocomplete and cross-question memory for Moodle CodeRunner quizes.
 - **Cross-question memory** — Symbols defined in one question appear in the autocomplete of subsequent questions, tagged with their origin (e.g. `↩ Q1`).
 - **No build step** — Vanilla ES6+ JS, load unpacked and go.
 
+![Demo Gif](Demonstration.gif)
+
 ## Install
 
 ### Chrome / Edge
